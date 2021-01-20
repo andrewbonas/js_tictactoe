@@ -1,35 +1,84 @@
-//game board
-//an array of 9 spots that are empty
-// display is via DOM
-//reset function returning to 0
+const statusDisplay = document.querySelector('.message');
 
-(function () {
-  var gameBoard = {
- gameBoard = ["","","","","","","","",""],
- init function() {
-   this.cacheDom();
- },
- cacheDom: function() {
-   this.board = document.getElementsByClassName('board')
-   this.field = document.getElementsByClassName('field')
-   this.button = 
+let gameActive = true;
+let currentPlayer = "X";
+let gameState = ["", "", "", "", "", "", "", "", ""];
+
+const winningMessage = () => `Player ${currentPlayer} has won!`;
+const drawMessage = () => `It's a draw!`;
+const currentPlayerTurn = () => `It's ${currentPlayer}'s turn`;
+
+statusDisplay.innerHTML = currentPlayerTurn();
+
+const winningCombos = [
+  [0, 1, 2],
+  [3, 4, 5],
+  [6, 7, 8],
+  [0, 3, 6],
+  [1, 4, 7],
+  [2, 5, 8],
+  [0, 4, 8],
+  [2, 4, 6]
+];
+
+function handleCellPlayed(clickedCell, clickedCellIndex) {
+  gameState[clickedCellIndex] = currentPlayer;
+  clickedCell.innerHTML = currentPlayer;
+}
+
+function handlePlayerChange() {
+  currentPlayer = currentPlayer === "X" ? "O" : "X";
+  statusDisplay.innerHTML = currentPlayerTurn();
+}
+
+function handleResultValidation() {
+  let roundWon = false;
+  for (let i = 0; i <= 7; i++) {
+    const winCombo = winningCombos[i];
+    let a = gameState[winCombo[0]];
+    let b = gameState[winCombo[1]];
+    let c = gameState[winCombo[2]];
+    if (a === '' || b === '' || c === '') {
+      continue;
+    }
+    if (a === b && b === c) {
+      roundWon = true;
+      break
+    }
   }
-  };
-  gameBoard.init();
-}());
+  if (roundWon) {
+    statusDisplay.innerHTML = winningMessage();
+    gameActive = false;
+    return;
+  }
+  let roundDraw = !gameState.includes("");
+  if (roundDraw) {
+    statusDisplay.innerHTML = drawMessage();
+    gameActive = false;
+    return;
+  }
+  handlePlayerChange();
+}
 
+function handleCellClick(clickedCellEvent) {
+  const clickedCell = clickedCellEvent.target;
+  const clickedCellIndex = parseInt(clickedCell.getAttribute('data-cell-index'));
 
+  if (gameState[clickedCellIndex] !== "" || !gameActive) {
+    return;
+  }
+  handleCellPlayed(clickedCell, clickedCellIndex);
+  handleResultValidation();
+}
 
-// players
-//player1 = x
-//player2 = 0
+function handleRestartGame() {
+  gameActive = true;
+  currentPlayer = "X";
+  gameState = ["", "", "", "", "", "", "", "", ""];
+  statusDisplay.innerHTML = currentPlayerTurn();
+  document.querySelectorAll('.cell')
+    .forEach(cell => cell.innerHTML = "");
+}
 
-
-
-//game
-//loop starts at 0 and ends at 9
-//start with x if player is not divisible by 2 player = X
-//onclick player1/2 takes spot requested if empty.
-//tokens can not take the same spot
-//if array matches any of the winning combo array game over
-//if no 3 in a row tie
+document.querySelectorAll('.cell').forEach(cell => cell.addEventListener('click', handleCellClick));
+document.querySelector('.btn').addEventListener('click', handleRestartGame);
